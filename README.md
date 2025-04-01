@@ -1,0 +1,2 @@
+# EquipmentRentals
+Next.js app
