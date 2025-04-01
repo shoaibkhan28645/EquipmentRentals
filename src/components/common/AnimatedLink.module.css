@@ -1,0 +1,22 @@
+/* AnimatedLink.module.css */
+.animatedLink {
+  position: relative;
+  text-decoration: none;
+  color: inherit;
+  display: inline-block;
+}
+
+.animatedLink::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 3px;
+  bottom: -2px;
+  left: 0;
+  background-color: #ffd700; /* Yellow color, you can change this to match your design */
+  transition: width 0.3s ease-in-out;
+}
+
+.animatedLink:hover::after {
+  width: 100%;
+}
