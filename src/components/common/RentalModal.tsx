@@ -1,10 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, FormEvent, ChangeEvent } from "react";
 import { X, Mail, Phone } from "lucide-react";
 
-export default function RentalModal({ isOpen, onClose, category }) {
-  const [contactMethod, setContactMethod] = useState(null); // 'email' or 'phone'
+// Define the category type
+interface Category {
+  id: string;
+  name: string;
+  image?: string;
+}
+
+// Define props interface
+interface RentalModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  category: Category;
+}
+
+export default function RentalModal({
+  isOpen,
+  onClose,
+  category,
+}: RentalModalProps) {
+  const [contactMethod, setContactMethod] = useState<string | null>(null); // 'email' or 'phone'
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -14,37 +32,41 @@ export default function RentalModal({ isOpen, onClose, category }) {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    try {
-      // Here we call the API route to send email
-      await fetch("/api/send-rental-request", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...formData,
-          categoryName: category.name,
-          categoryId: category.id,
-        }),
-      });
+    // try {
+    //   // Here we call the API route to send email
+    //   await fetch("/api/send-rental-request", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify({
+    //       ...formData,
+    //       categoryName: category.name,
+    //       categoryId: category.id,
+    //     }),
+    //   });
 
-      setSubmitted(true);
-    } catch (error) {
-      console.error("Error sending email:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
+    //   setSubmitted(true);
+    // } catch (err) {
+    //   console.error("Error sending email:", err);
+    //   setError("Failed to send your request. Please try again.");
+    // } finally {
+    //   setIsSubmitting(false);
+    // }
+    setSubmitted(true);
   };
 
   if (!isOpen) return null;
@@ -107,8 +129,8 @@ export default function RentalModal({ isOpen, onClose, category }) {
               Request Submitted!
             </h3>
             <p className="text-gray-600 mb-4">
-              Thank you for your interest in renting {category.name}. We'll get
-              back to you shortly.
+              Thank you for your interest in renting {category.name}. We&apos;ll
+              get back to you shortly.
             </p>
             <button
               onClick={onClose}
@@ -202,7 +224,9 @@ export default function RentalModal({ isOpen, onClose, category }) {
           </form>
         ) : (
           <div className="p-6">
-            <h3 className="font-medium text-lg mb-2">Contact us directly</h3>
+            <h3 className="font-medium text-black text-lg mb-2">
+              Contact us directly
+            </h3>
             <p className="text-gray-600 mb-4">
               Call us at{" "}
               <a

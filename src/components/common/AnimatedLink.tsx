@@ -1,9 +1,21 @@
-// AnimatedLink.jsx
+// AnimatedLink.tsx
+import React from "react";
 import Link from "next/link";
-import { useState } from "react";
+import { LinkProps } from "next/link";
 import styles from "./AnimatedLink.module.css";
 
-const AnimatedLink = ({ href, children, className = "", ...props }) => {
+// Define the props interface for AnimatedLink
+interface AnimatedLinkProps extends LinkProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+const AnimatedLink: React.FC<AnimatedLinkProps> = ({
+  href,
+  children,
+  className = "",
+  ...props
+}) => {
   return (
     <Link
       href={href}

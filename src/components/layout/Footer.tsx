@@ -1,6 +1,5 @@
 // components/Footer.tsx
 import React from "react";
-import Link from "next/link";
 import {
   Phone,
   Mail,
@@ -26,7 +25,7 @@ export default function Footer() {
               Your trusted partner for quality equipment rentals. Serving
               contractors and DIY enthusiasts.
             </p>
-            <div className="flex space-x-4">
+            {/* <div className="flex space-x-4">
               <a
                 href="https://facebook.com"
                 className="text-gray-400 hover:text-white"
@@ -55,7 +54,7 @@ export default function Footer() {
               >
                 <Linkedin className="h-5 w-5" />
               </a>
-            </div>
+            </div> */}
           </div>
 
           {/* Contact Info */}
@@ -64,27 +63,25 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start">
                 <Phone className="h-5 w-5 mr-3 text-gray-400 mt-0.5" />
-                <span className="text-gray-400">(800) 555-1234</span>
+                <span className="text-gray-400">(888) 350-7661</span>
               </li>
               <li className="flex items-start">
                 <Mail className="h-5 w-5 mr-3 text-gray-400 mt-0.5" />
-                <span className="text-gray-400">info@rentequip.com</span>
+                <span className="text-gray-400">info@nn-networks.com</span>
               </li>
               <li className="flex items-start">
                 <MapPin className="h-5 w-5 mr-3 text-gray-400 mt-0.5" />
                 <span className="text-gray-400">
-                  123 Equipment Lane
+                  1833 Cheddar loop #714 Austin Texas
                   <br />
-                  Construction City, CA 90210
+                  #714 Austin Texas
                 </span>
               </li>
             </ul>
             <div className="mt-4">
               <h4 className="text-sm font-medium mb-2">Business Hours</h4>
               <p className="text-gray-400 text-sm">
-                Monday-Friday: 7AM-7PM
-                <br />
-                Saturday: 8AM-5PM
+                Monday-Saturday: 5AM EST - 5PM PDT
                 <br />
                 Sunday: Closed
               </p>

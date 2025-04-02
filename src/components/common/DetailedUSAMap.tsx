@@ -1,66 +1,88 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from "react";
 import * as d3 from "d3";
 import * as topojson from "topojson-client";
+import type * as GeoJSON from "geojson";
+
+// Define a helper type for the topojson feature result
+interface FeatureCollection {
+  type: string;
+  features: any[];
+}
+
+// Define type for location data
+interface Location {
+  id: string;
+  name: string;
+  state: string;
+  coordinates: [number, number]; // Explicitly define as tuple with exactly 2 numbers
+  equipmentCount: number;
+}
 
 export default function ImprovedUSAMap() {
-  const [usaMapData, setUsaMapData] = useState(null);
-  const [activeLocation, setActiveLocation] = useState(null);
+  const [usaMapData, setUsaMapData] = useState<any>(null);
+
+  // Remove unused state variables since we're removing interactive features
+  const [activeLocation, setActiveLocation] = useState<string | null>(null);
   const [tooltipContent, setTooltipContent] = useState("");
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [showTooltip, setShowTooltip] = useState(false);
-  const mapContainerRef = useRef(null);
-  const tooltipRef = useRef(null);
-  const svgRef = useRef(null);
-  const mapRef = useRef(null);
 
-  // Location data
-  const locations = [
+  // Fix: Add proper types to refs
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const mapRef = useRef<SVGGElement | null>(null);
+
+  // Location data with proper typing
+  const locations: Location[] = [
     {
       id: "los-angeles",
       name: "Los Angeles",
       state: "CA",
-      coordinates: [-118.243683, 34.052235],
+      coordinates: [-118.243683, 34.052235] as [number, number],
       equipmentCount: 254,
     },
     {
       id: "new-york-city",
       name: "New York City",
       state: "NY",
-      coordinates: [-74.005974, 40.712776],
+      coordinates: [-74.005974, 40.712776] as [number, number],
       equipmentCount: 341,
     },
     {
       id: "chicago",
       name: "Chicago",
       state: "IL",
-      coordinates: [-87.629799, 41.878113],
+      coordinates: [-87.629799, 41.878113] as [number, number],
       equipmentCount: 198,
     },
     {
       id: "houston",
       name: "Houston",
       state: "TX",
-      coordinates: [-95.369804, 29.760427],
+      coordinates: [-95.369804, 29.760427] as [number, number],
       equipmentCount: 267,
     },
     {
       id: "miami",
       name: "Miami",
       state: "FL",
-      coordinates: [-80.19179, 25.761681],
+      coordinates: [-80.19179, 25.761681] as [number, number],
       equipmentCount: 185,
     },
     {
       id: "denver",
       name: "Denver",
       state: "CO",
-      coordinates: [-104.990251, 39.739236],
+      coordinates: [-104.990251, 39.739236] as [number, number],
       equipmentCount: 126,
     },
   ];
 
   // Updated state color mappings with more contrast
-  const stateColors = {
+  const stateColors: Record<string, string> = {
     CA: "#FFDD94", // Darker yellow for states with locations
     NY: "#FFDD94",
     IL: "#FFDD94",
@@ -70,7 +92,7 @@ export default function ImprovedUSAMap() {
   };
 
   // Mapping of state names to abbreviations
-  const statesMap = {
+  const statesMap: Record<string, string> = {
     Alabama: "AL",
     Alaska: "AK",
     Arizona: "AZ",
@@ -125,7 +147,7 @@ export default function ImprovedUSAMap() {
   };
 
   // Create a reverse mapping from abbreviations to state names
-  const abbrToStateMap = {};
+  const abbrToStateMap: Record<string, string> = {};
   Object.entries(statesMap).forEach(([name, abbr]) => {
     abbrToStateMap[abbr] = name;
   });
@@ -168,15 +190,18 @@ export default function ImprovedUSAMap() {
       .attr("viewBox", [0, 0, width, height])
       .attr("style", "max-width: 100%; height: auto;");
 
-    svgRef.current = svg.node();
+    svgRef.current = svg.node() as SVGSVGElement;
 
     // Define projection
+    // Fix: Add proper type assertion for topojson.feature
+    const featureCollection = topojson.feature(
+      usaMapData,
+      usaMapData.objects.states
+    ) as unknown as FeatureCollection;
+
     const projection = d3
       .geoAlbersUsa()
-      .fitSize(
-        [width, height],
-        topojson.feature(usaMapData, usaMapData.objects.states)
-      );
+      .fitSize([width, height], featureCollection as any);
 
     // Path generator
     const path = d3.geoPath().projection(projection);
@@ -275,17 +300,20 @@ export default function ImprovedUSAMap() {
 
     // Map container for states
     const mapGroup = svg.append("g");
-    mapRef.current = mapGroup;
+    mapRef.current = mapGroup.node() as SVGGElement;
 
     // Process state features
-    const stateFeatures = topojson.feature(
-      usaMapData,
-      usaMapData.objects.states
+    // Fix: Use proper type assertion for topojson.feature
+    const stateFeatures = (
+      topojson.feature(
+        usaMapData,
+        usaMapData.objects.states
+      ) as unknown as FeatureCollection
     ).features;
 
     // Create a lookup for state features
-    const stateFeatureMap = {};
-    stateFeatures.forEach((feature) => {
+    const stateFeatureMap: Record<string, any> = {};
+    stateFeatures.forEach((feature: any) => {
       stateFeatureMap[feature.properties.name] = feature;
     });
 
@@ -295,7 +323,7 @@ export default function ImprovedUSAMap() {
       .data(stateFeatures)
       .join("path")
       .attr("d", path)
-      .attr("fill", (d) => {
+      .attr("fill", (d: any) => {
         const stateName = d.properties.name;
         const stateAbbr = statesMap[stateName] || stateName;
 
@@ -305,18 +333,22 @@ export default function ImprovedUSAMap() {
       .attr("stroke", "#8c9cb1") // Darker border color for better visibility
       .attr("stroke-width", 0.8) // Thicker borders
       .attr("class", "state")
-      .attr("id", (d) => `state-${statesMap[d.properties.name]}`)
+      .attr("id", (d: any) => `state-${statesMap[d.properties.name]}`)
       .attr("opacity", 0)
       .transition()
       .duration(1000)
-      .delay((d, i) => 300 + i * 10)
+      .delay((d: any, i: number) => 300 + i * 10)
       .attr("opacity", 1);
 
     // Add state borders with improved visibility
     mapGroup
       .append("path")
       .datum(
-        topojson.mesh(usaMapData, usaMapData.objects.states, (a, b) => a !== b)
+        topojson.mesh(
+          usaMapData,
+          usaMapData.objects.states,
+          (a: any, b: any) => a !== b
+        )
       )
       .attr("fill", "none")
       .attr("stroke", "#5a6987") // Darker border color for better contrast
@@ -336,6 +368,7 @@ export default function ImprovedUSAMap() {
       const currentLoc = locations[i];
       const nextLoc = locations[(i + 1) % locations.length];
 
+      // Ensure TypeScript knows these are valid coordinates for projection
       const start = projection(currentLoc.coordinates);
       const end = projection(nextLoc.coordinates);
 
@@ -368,7 +401,6 @@ export default function ImprovedUSAMap() {
         .attr("class", "marker")
         .attr("data-location", location.id)
         .attr("data-state", location.state)
-        .attr("cursor", "pointer")
         .style("opacity", 0);
 
       // Add a shadow beneath the marker for elevation effect
@@ -388,13 +420,7 @@ export default function ImprovedUSAMap() {
         .delay(1500 + i * 150)
         .style("opacity", 1);
 
-      // Pulse animation
-      markerGroup
-        .append("circle")
-        .attr("r", 20)
-        .attr("fill", "#FF9800") // Darker orange for better visibility
-        .attr("opacity", 0.3)
-        .attr("class", "pulse-circle");
+      // Pulse animation - REMOVED FOR SIMPLIFIED VERSION
 
       // Actual marker with shadow
       markerGroup
@@ -434,207 +460,10 @@ export default function ImprovedUSAMap() {
         .attr("font-size", "12px")
         .text(`${location.name}, ${location.state}`);
 
-      // Add event listeners for interactive behavior
-      markerGroup
-        .on("mouseenter", function (event) {
-          // Store the location ID directly in a data attribute
-          d3.selectAll(".marker").attr("data-active", "false");
-          d3.select(this).attr("data-active", "true");
-
-          // Handle state highlighting through D3 directly
-          d3.selectAll(".state").each(function (d) {
-            const stateName = d.properties.name;
-            const stateAbbr = statesMap[stateName] || stateName;
-
-            if (stateAbbr === location.state) {
-              d3.select(this)
-                .transition()
-                .duration(300)
-                .attr("fill", "#FFB74D"); // Brighter highlight
-            } else {
-              const hasLocation = locations.some(
-                (loc) => loc.state === stateAbbr
-              );
-              d3.select(this)
-                .transition()
-                .duration(300)
-                .attr("fill", hasLocation ? "#FFDD94" : "#ffffff");
-            }
-          });
-
-          // For React components outside D3 that need to know the active location
-          setActiveLocation(location.id);
-
-          // Get state name for the full state name
-          const stateName = abbrToStateMap[location.state] || location.state;
-
-          // Show tooltip with state name emphasized
-          setTooltipContent(
-            `<b>${stateName}</b><br>${location.name}, ${location.state}: ${location.equipmentCount} equipment units`
-          );
-          setTooltipPosition({ x: event.pageX, y: event.pageY });
-          setShowTooltip(true);
-
-          // Animate marker on hover
-          d3.select(this)
-            .select("circle:nth-child(2)")
-            .transition()
-            .duration(300)
-            .attr("r", 10);
-
-          d3.select(this)
-            .select("circle:nth-child(3)")
-            .transition()
-            .duration(300)
-            .attr("r", 8);
-
-          // Add pulse animation
-          d3.select(this)
-            .select(".pulse-circle")
-            .attr("opacity", 0.3)
-            .attr("r", 8)
-            .transition()
-            .duration(1500)
-            .attr("r", 25)
-            .attr("opacity", 0)
-            .on("end", function () {
-              // Use the data attribute to check if this is still the active marker
-              if (
-                d3
-                  .select(d3.select(this).node()?.parentNode)
-                  .attr("data-active") === "true"
-              ) {
-                d3.select(this)
-                  .attr("r", 8)
-                  .attr("opacity", 0.3)
-                  .transition()
-                  .duration(1500)
-                  .attr("r", 25)
-                  .attr("opacity", 0);
-              }
-            });
-        })
-        .on("mouseleave", function () {
-          // Reset active marker status
-          d3.select(this).attr("data-active", "false");
-
-          // Reset state colors through D3
-          d3.selectAll(".state").each(function (d) {
-            const stateName = d.properties.name;
-            const stateAbbr = statesMap[stateName] || stateName;
-            const hasLocation = locations.some(
-              (loc) => loc.state === stateAbbr
-            );
-
-            d3.select(this)
-              .transition()
-              .duration(300)
-              .attr("fill", hasLocation ? "#FFDD94" : "#ffffff");
-          });
-
-          // Update React state for components outside D3
-          setActiveLocation(null);
-          setShowTooltip(false);
-
-          // Reset marker size
-          d3.select(this)
-            .select("circle:nth-child(2)")
-            .transition()
-            .duration(300)
-            .attr("r", 8);
-
-          d3.select(this)
-            .select("circle:nth-child(3)")
-            .transition()
-            .duration(300)
-            .attr("r", 6);
-        })
-        .on("click", () => {
-          window.location.href = `/locations/${location.id}`;
-        });
+      // REMOVED all mouseenter, mouseleave, and click event handlers
     });
 
-    // Add a hover effect to states
-    d3.selectAll(".state")
-      .on("mouseenter", function (event, d) {
-        const stateName = d.properties.name;
-        const stateAbbr = statesMap[stateName] || stateName;
-
-        // Highlight state with gold color
-        d3.select(this).transition().duration(300).attr("fill", "#FFB74D"); // More visible highlight
-
-        // Find if this state has a location and highlight that location marker
-        const locationInState = locations.find(
-          (loc) => loc.state === stateAbbr
-        );
-        if (locationInState) {
-          const marker = d3.select(
-            `.marker[data-location="${locationInState.id}"]`
-          );
-
-          marker
-            .select("circle:nth-child(2)")
-            .transition()
-            .duration(300)
-            .attr("r", 10);
-
-          marker
-            .select("circle:nth-child(3)")
-            .transition()
-            .duration(300)
-            .attr("r", 8);
-        }
-      })
-      .on("mouseleave", function (event, d) {
-        const stateName = d.properties.name;
-        const stateAbbr = statesMap[stateName] || stateName;
-
-        // Check if any marker is currently active
-        const anyMarkerActive =
-          d3.select(`.marker[data-active="true"]`).empty() === false;
-        const activeMarkerState = anyMarkerActive
-          ? d3.select(`.marker[data-active="true"]`).attr("data-state")
-          : null;
-
-        // Don't reset if a marker in this state is active
-        if (activeMarkerState === stateAbbr) return;
-
-        // Reset state color
-        d3.select(this)
-          .transition()
-          .duration(300)
-          .attr("fill", () => {
-            const stateLocation = locations.find(
-              (loc) => loc.state === stateAbbr
-            );
-            return stateLocation ? stateColors[stateLocation.state] : "#ffffff";
-          });
-
-        // Reset any highlighted location markers for this state
-        const locationInState = locations.find(
-          (loc) => loc.state === stateAbbr
-        );
-        if (locationInState) {
-          const marker = d3.select(
-            `.marker[data-location="${locationInState.id}"]`
-          );
-
-          // Only reset if this marker isn't the active one
-          if (marker.attr("data-active") !== "true") {
-            marker
-              .select("circle:nth-child(2)")
-              .transition()
-              .duration(300)
-              .attr("r", 8);
-
-            marker
-              .select("circle:nth-child(3)")
-              .transition()
-              .duration(300)
-              .attr("r", 6);
-          }
-        }
-      });
+    // REMOVED all state hover effects
 
     // Make the map component responsive
     const resizeMap = () => {
@@ -652,16 +481,23 @@ export default function ImprovedUSAMap() {
       svg.select("rect").attr("width", newWidth).attr("height", newHeight);
 
       // Update projection to fit new dimensions
-      projection.fitSize(
-        [newWidth, newHeight],
-        topojson.feature(usaMapData, usaMapData.objects.states)
-      );
+      // Fix: Add proper type assertion
+      const featureCollection = topojson.feature(
+        usaMapData,
+        usaMapData.objects.states
+      ) as unknown as FeatureCollection;
+
+      projection.fitSize([newWidth, newHeight], featureCollection as any);
 
       // Update paths
-      mapGroup.selectAll("path").attr("d", path);
+      mapGroup.selectAll("path").attr("d", function (d: any) {
+        return path(d);
+      });
 
-      // Update borders
-      mapGroup.select("path").attr("d", path);
+      // Update borders with proper type handling
+      mapGroup.select("path").attr("d", function (d: any) {
+        return path(d);
+      });
 
       // Update connections
       connectionsGroup.selectAll("path").remove();
@@ -670,6 +506,7 @@ export default function ImprovedUSAMap() {
         const currentLoc = locations[i];
         const nextLoc = locations[(i + 1) % locations.length];
 
+        // Ensure TypeScript knows these are valid coordinates for projection
         const start = projection(currentLoc.coordinates);
         const end = projection(nextLoc.coordinates);
 
@@ -708,7 +545,7 @@ export default function ImprovedUSAMap() {
     return () => {
       window.removeEventListener("resize", resizeMap);
     };
-  }, [usaMapData]);
+  }, [usaMapData, abbrToStateMap, locations, stateColors, statesMap]); // Dependencies included
 
   return (
     <section className="bg-gray">
@@ -717,7 +554,7 @@ export default function ImprovedUSAMap() {
 
         {/* Improved USA Map */}
         <div
-          className="relative bg-grey p-0 rounded-lg  opacity-0 transform translate-y-4 transition-all duration-1000"
+          className="relative bg-grey p-0 rounded-lg opacity-0 transform translate-y-4 transition-all duration-1000"
           style={{ minHeight: "500px" }}
           ref={mapContainerRef}
         >
@@ -745,19 +582,7 @@ export default function ImprovedUSAMap() {
             </div>
           )}
 
-          {/* Tooltip with improved styling */}
-          {showTooltip && (
-            <div
-              ref={tooltipRef}
-              className="absolute z-10 bg-white p-3 rounded-md shadow-lg text-sm pointer-events-none border border-gray-200"
-              style={{
-                left: tooltipPosition.x + 10,
-                top: tooltipPosition.y - 40,
-                transform: "translateX(-50%)",
-              }}
-              dangerouslySetInnerHTML={{ __html: tooltipContent }}
-            ></div>
-          )}
+          {/* Tooltip removed for simplified version */}
         </div>
       </div>
     </section>
